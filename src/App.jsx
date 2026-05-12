@@ -1,121 +1,111 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.scss'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [mode, setMode] = useState('login')
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <main className="auth-page">
+      <section className="auth-hero">
+        <div className="brand">
+          <span className="brand-icon">PF</span>
+          <strong>PointFlow</strong>
         </div>
-        <div>
-          <h1>Get started</h1>
+
+        <div className="hero-content">
+          <span className="tag">Gestão inteligente de pontos</span>
+
+          <h1>
+            Controle de transações, pontos e saldos em uma única plataforma.
+          </h1>
+
           <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+            O PointFlow é um fluxo simples, seguro e eficiente para acompanhar transações, extratos e carteiras.
+          </p>
+
+          <div className="hero-cards">
+            <div>
+              <strong>Upload</strong>
+              <span>Planilhas de transações</span>
+            </div>
+
+            <div>
+              <strong>Wallet</strong>
+              <span>Saldo de pontos aprovados</span>
+            </div>
+
+            <div>
+              <strong>Reports</strong>
+              <span>Relatórios com filtros</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="auth-box">
+        <div className="auth-card">
+          <div className="tabs">
+            <button
+              className={mode === 'login' ? 'active' : ''}
+              onClick={() => setMode('login')}
+              type="button"
+            >
+              Login
+            </button>
+
+            <button
+              className={mode === 'register' ? 'active' : ''}
+              onClick={() => setMode('register')}
+              type="button"
+            >
+              Cadastro
+            </button>
+          </div>
+
+          <div className="form-header">
+            <h2>{mode === 'login' ? 'Acesse sua conta' : 'Crie sua conta'}</h2>
+            <p>
+              {mode === 'login'
+                ? 'Entre para visualizar seu extrato e sua carteira.'
+                : 'Cadastre-se para começar a acompanhar suas transações.'}
+            </p>
+          </div>
+
+          <form>
+            {mode === 'register' && (
+              <label>
+                Nome
+                <input type="text" placeholder="Digite seu nome" />
+              </label>
+            )}
+
+            <label>
+              E-mail
+              <input type="email" placeholder="Digite seu e-mail" />
+            </label>
+
+            <label>
+              Senha
+              <input type="password" placeholder="Digite sua senha" />
+            </label>
+
+            <button className="submit" type="submit">
+              {mode === 'login' ? 'Entrar no PointFlow' : 'Criar conta'}
+            </button>
+          </form>
+
+          <p className="switch-text">
+            {mode === 'login' ? 'Ainda não tem conta?' : 'Já possui conta?'}{' '}
+            <button
+              type="button"
+              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            >
+              {mode === 'login' ? 'Cadastre-se' : 'Fazer login'}
+            </button>
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
