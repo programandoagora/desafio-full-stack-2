@@ -25,8 +25,8 @@ function App() {
 
           <div className="hero-cards">
             <div>
-              <strong>Upload</strong>
-              <span>Planilhas de transações</span>
+              <strong>Transactions</strong>
+              <span>Acompanhamento de transações</span>
             </div>
 
             <div>
