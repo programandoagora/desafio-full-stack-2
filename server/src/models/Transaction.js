@@ -10,7 +10,7 @@ const Transaction = sequelize.define('Transaction', {
 
   userId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     field: 'user_id',
   },
 
@@ -30,11 +30,6 @@ const Transaction = sequelize.define('Transaction', {
     allowNull: false,
   },
 
-  productName: {
-    type: DataTypes.STRING(150),
-    allowNull: true,
-    field: 'product_name',
-  },
 
   transactionDate: {
     type: DataTypes.DATEONLY,

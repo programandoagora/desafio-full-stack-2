@@ -2,9 +2,10 @@ const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
 
-const sequelize = require('./config/database')
+const { sequelize } = require('./models')
 const authRoutes = require('./routes/auth.routes')
 const adminRoutes = require('./routes/admin.routes')
+const userRoutes = require('./routes/user.routes')
 
 const app = express()
 
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', authRoutes)
 app.use('/admin', adminRoutes)
+app.use('/user', userRoutes)
 
 const PORT = process.env.PORT || 3001
 
