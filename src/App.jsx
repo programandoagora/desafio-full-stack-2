@@ -27,23 +27,43 @@ function App() {
 
     setMessage('')
 
-    if (mode !== 'register') {
-      return
-    }
+    const endpoint =
+      mode === 'register'
+        ? 'http://localhost:3001/auth/register'
+        : 'http://localhost:3001/auth/login'
+
+    const payload =
+      mode === 'register'
+        ? formData
+        : {
+            email: formData.email,
+            password: formData.password,
+          }
 
     try {
-      const response = await fetch('http://localhost:3001/auth/register', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        setMessage(data.message || 'Erro ao cadastrar usuário.')
+        setMessage(data.message || 'Erro ao processar solicitação.')
+        return
+      }
+
+      if (mode === 'login') {
+        localStorage.setItem('pointflow_token', data.token)
+        localStorage.setItem('pointflow_user', JSON.stringify(data.user))
+
+        setMessage('Login realizado com sucesso.')
+        console.log('Usuário logado:', data.user)
+        console.log('Token JWT:', data.token)
+
         return
       }
 
