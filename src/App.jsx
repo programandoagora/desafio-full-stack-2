@@ -4,6 +4,76 @@ import './App.scss'
 function App() {
   const [mode, setMode] = useState('login')
 
+  const [formData, setFormData] = useState({
+    name: '',
+    cpf: '',
+    email: '',
+    password: '',
+  })
+
+  const [message, setMessage] = useState('')
+
+  function handleChange(event) {
+    const { name, value } = event.target
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    })
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    setMessage('')
+
+    if (mode !== 'register') {
+      return
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setMessage(data.message || 'Erro ao cadastrar usuário.')
+        return
+      }
+
+      setMessage('Usuário cadastrado com sucesso.')
+
+      setFormData({
+        name: '',
+        cpf: '',
+        email: '',
+        password: '',
+      })
+
+      setMode('login')
+    } catch (error) {
+      setMessage('Erro ao conectar com a API.')
+    }
+  }
+
+  function handleModeChange(selectedMode) {
+    setMode(selectedMode)
+    setMessage('')
+
+    setFormData({
+      name: '',
+      cpf: '',
+      email: '',
+      password: '',
+    })
+  }
+
   return (
     <main className="auth-page">
       <section className="auth-hero">
@@ -20,7 +90,8 @@ function App() {
           </h1>
 
           <p>
-            O PointFlow é um fluxo simples, seguro e eficiente para acompanhar transações, extratos e carteiras.
+            O PointFlow é um fluxo simples, seguro e eficiente para acompanhar
+            transações, extratos e carteiras.
           </p>
 
           <div className="hero-cards">
@@ -47,7 +118,7 @@ function App() {
           <div className="tabs">
             <button
               className={mode === 'login' ? 'active' : ''}
-              onClick={() => setMode('login')}
+              onClick={() => handleModeChange('login')}
               type="button"
             >
               Login
@@ -55,7 +126,7 @@ function App() {
 
             <button
               className={mode === 'register' ? 'active' : ''}
-              onClick={() => setMode('register')}
+              onClick={() => handleModeChange('register')}
               type="button"
             >
               Cadastro
@@ -71,34 +142,73 @@ function App() {
             </p>
           </div>
 
-          <form>
+          <form onSubmit={handleSubmit}>
             {mode === 'register' && (
-              <label>
-                Nome
-                <input type="text" placeholder="Digite seu nome" />
-              </label>
+            <>
+            <label>
+              Nome
+              <input
+                name="name"
+                type="text"
+                placeholder="Digite seu nome"
+                value={formData.name}
+                onChange={handleChange}
+              />
+            </label>
+
+            <label>
+              CPF
+              <input
+                name="cpf"
+                type="text"
+                placeholder="Digite seu CPF"
+                value={formData.cpf}
+                onChange={handleChange}
+              />
+            </label>
+          </>
             )}
 
             <label>
               E-mail
-              <input type="email" placeholder="Digite seu e-mail" />
+              <input
+                name="email"
+                type="email"
+                placeholder="Digite seu e-mail"
+                value={formData.email}
+                onChange={handleChange}
+              />
             </label>
 
             <label>
               Senha
-              <input type="password" placeholder="Digite sua senha" />
+              <input
+                name="password"
+                type="password"
+                placeholder="Digite sua senha"
+                value={formData.password}
+                onChange={handleChange}
+              />
             </label>
 
             <button className="submit" type="submit">
               {mode === 'login' ? 'Entrar no PointFlow' : 'Criar conta'}
             </button>
+
+            {message && (
+              <p className="form-message">
+                {message}
+              </p>
+            )}
           </form>
 
           <p className="switch-text">
             {mode === 'login' ? 'Ainda não tem conta?' : 'Já possui conta?'}{' '}
             <button
               type="button"
-              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+              onClick={() =>
+                handleModeChange(mode === 'login' ? 'register' : 'login')
+              }
             >
               {mode === 'login' ? 'Cadastre-se' : 'Fazer login'}
             </button>

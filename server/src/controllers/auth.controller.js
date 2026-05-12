@@ -3,11 +3,21 @@ const User = require('../models/User')
 
 async function register(req, res) {
   try {
-    const { name, email, password } = req.body
+    const { name, cpf, email, password } = req.body
 
-    if (!name || !email || !password) {
+    if (!name || !cpf || !email || !password) {
       return res.status(400).json({
         message: 'Name, email and password are required.',
+      })
+    }
+
+    const cpfAlreadyExists = await User.findOne({
+      where: { cpf },
+    })
+
+    if (cpfAlreadyExists) {
+      return res.status(409).json({
+        message: 'CPF already exists.',
       })
     }
 
@@ -25,6 +35,7 @@ async function register(req, res) {
 
     const user = await User.create({
       name,
+      cpf,
       email,
       passwordHash,
       role: 'user',
