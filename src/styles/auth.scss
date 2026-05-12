@@ -58,8 +58,7 @@ h2 {
   color: var(--text-h);
 }
 
-h1 {
-  max-width: 760px;
+h1 {  
   font-size: clamp(42px, 6vw, 76px);
   line-height: 0.95;
   letter-spacing: -3px;
@@ -67,7 +66,6 @@ h1 {
 }
 
 .hero-content p {
-  max-width: 560px;
   font-size: 18px;
   line-height: 1.7;
   color: var(--text);
