@@ -2,7 +2,57 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/auth.scss'
 
+function formatCpf(value) {
+  const numbers = value.replace(/\D/g, '')
 
+  return numbers
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2')
+    .slice(0, 14)
+}
+
+function validateCpf(cpf) {
+  const cleanCpf = cpf.replace(/\D/g, '')
+
+  if (cleanCpf.length !== 11) {
+    return false
+  }
+
+  if (/^(\d)\1+$/.test(cleanCpf)) {
+    return false
+  }
+
+  let sum = 0
+
+  for (let i = 0; i < 9; i++) {
+    sum += Number(cleanCpf.charAt(i)) * (10 - i)
+  }
+
+  let remainder = (sum * 10) % 11
+
+  if (remainder === 10 || remainder === 11) {
+    remainder = 0
+  }
+
+  if (remainder !== Number(cleanCpf.charAt(9))) {
+    return false
+  }
+
+  sum = 0
+
+  for (let i = 0; i < 10; i++) {
+    sum += Number(cleanCpf.charAt(i)) * (11 - i)
+  }
+
+  remainder = (sum * 10) % 11
+
+  if (remainder === 10 || remainder === 11) {
+    remainder = 0
+  }
+
+  return remainder === Number(cleanCpf.charAt(10))
+}
 
 function AuthPage() {
   const [mode, setMode] = useState('login')
@@ -19,84 +69,88 @@ function AuthPage() {
   function handleChange(event) {
     const { name, value } = event.target
 
+    let formattedValue = value
+
+    if (name === 'cpf') {
+      formattedValue = formatCpf(value)
+    }
+
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: formattedValue,
     })
   }
 
   const navigate = useNavigate()
 
-  async function handleSubmit(event) {
-    event.preventDefault()
+async function handleSubmit(event) {
+  event.preventDefault()
 
-    setMessage('')
+  setMessage('')
 
-    const endpoint =
-      mode === 'register'
-        ? 'http://localhost:3001/auth/register'
-        : 'http://localhost:3001/auth/login'
+  if (mode === 'register' && !validateCpf(formData.cpf)) {
+    setMessage('Digite um CPF válido.')
+    return
+  }
 
-    const payload =
-      mode === 'register'
-        ? formData
-        : {
-            email: formData.email,
-            password: formData.password,
-          }
+  const endpoint =
+    mode === 'register'
+      ? 'http://localhost:3001/auth/register'
+      : 'http://localhost:3001/auth/login'
 
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-            setMessage('Login realizado com sucesso.')
-
-            if (data.user.role === 'admin') {
-                navigate('/admin')
-                return
-            }
-
-            navigate('/dashboard')
-            return
-      }
-
-        if (mode === 'login') {
-            localStorage.setItem('pointflow_token', data.token)
-            localStorage.setItem('pointflow_user', JSON.stringify(data.user))
-
-            setMessage('Login realizado com sucesso.')
-
-            if (data.user.role === 'admin') {
-                navigate('/admin')
-                return
-            }
-
-            navigate('/dashboard')
-            return
+  const payload =
+    mode === 'register'
+      ? formData
+      : {
+          email: formData.email,
+          password: formData.password,
         }
 
-      setMessage('Usuário cadastrado com sucesso.')
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
 
-      setFormData({
-        name: '',
-        cpf: '',
-        email: '',
-        password: '',
-      })
+    const data = await response.json()
 
-      setMode('login')
-    } catch (error) {
-      setMessage('Erro ao conectar com a API.')
+    if (!response.ok) {
+      setMessage(data.message || 'Erro ao processar solicitação.')
+      return
     }
+
+    if (mode === 'login') {
+      localStorage.setItem('pointflow_token', data.token)
+      localStorage.setItem('pointflow_user', JSON.stringify(data.user))
+
+      setMessage('Login realizado com sucesso.')
+
+      if (data.user.role === 'admin') {
+        navigate('/admin')
+        return
+      }
+
+      navigate('/dashboard')
+      return
+    }
+
+    setMessage('Usuário cadastrado com sucesso.')
+
+    setFormData({
+      name: '',
+      cpf: '',
+      email: '',
+      password: '',
+    })
+
+    setMode('login')
+  } catch (error) {
+    setMessage('Erro ao conectar com a API.')
   }
+}
 
   function handleModeChange(selectedMode) {
     setMode(selectedMode)
@@ -195,11 +249,11 @@ function AuthPage() {
             <label>
               CPF
               <input
-                name="cpf"
                 type="text"
-                placeholder="Digite seu CPF"
+                name="cpf"
                 value={formData.cpf}
                 onChange={handleChange}
+                placeholder="000.000.000-00"
               />
             </label>
           </>
