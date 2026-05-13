@@ -89,17 +89,31 @@ function UserDashboard() {
     loadStatement(1)
   }
 
-  function handleClearFilters() {
-    setFilters({
-      status: 'all',
-      startDate: '',
-      endDate: '',
-    })
-
-    setTimeout(() => {
-      loadStatement(1)
-    }, 0)
+async function handleClearFilters() {
+  const clearedFilters = {
+    status: 'all',
+    startDate: '',
+    endDate: '',
   }
+
+  setFilters(clearedFilters)
+
+  try {
+    const params = new URLSearchParams()
+
+    params.append('page', 1)
+    params.append('status', 'all')
+
+    const data = await apiRequest(
+      `/user/statement?${params.toString()}`,
+    )
+
+    setTransactions(data.transactions)
+    setPagination(data.pagination)
+  } catch (error) {
+    setMessage(error.message)
+  }
+}
 
   function handlePageChange(page) {
     loadStatement(page)
