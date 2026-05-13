@@ -557,9 +557,9 @@ function handleClearTransactionFilters() {
                 Valor mínimo
                 <input
                   name="minAmount"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0,00"
                   value={transactionFilters.minAmount}
                   onChange={handleTransactionFilterChange}
                 />
@@ -569,9 +569,9 @@ function handleClearTransactionFilters() {
                 Valor máximo
                 <input
                   name="maxAmount"
-                  type="number"
-                  step="0.01"
-                  placeholder="10000.00"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="10.000,00"
                   value={transactionFilters.maxAmount}
                   onChange={handleTransactionFilterChange}
                 />

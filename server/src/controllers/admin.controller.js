@@ -135,6 +135,20 @@ async function createTransactionForUser(req, res) {
   }
 }
 
+function parseBrazilianCurrency(value) {
+  if (!value) return null
+
+  const normalizedValue = String(value)
+    .replace(/\s/g, '')
+    .replace('R$', '')
+    .replace(/\./g, '')
+    .replace(',', '.')
+
+  const numberValue = Number(normalizedValue)
+
+  return Number.isNaN(numberValue) ? null : numberValue
+}
+
 async function listTransactions(req, res) {
   try {
     const {
@@ -210,17 +224,20 @@ async function listTransactions(req, res) {
       }
     }
 
-    if (minAmount || maxAmount) {
+    const parsedMinAmount = parseBrazilianCurrency(minAmount)
+    const parsedMaxAmount = parseBrazilianCurrency(maxAmount)
+
+    if (parsedMinAmount !== null || parsedMaxAmount !== null) {
       where.amount = {}
 
-      if (minAmount) {
-        where.amount[Op.gte] = Number(minAmount)
+      if (parsedMinAmount !== null) {
+        where.amount[Op.gte] = parsedMinAmount
       }
 
-      if (maxAmount) {
-        where.amount[Op.lte] = Number(maxAmount)
+      if (parsedMaxAmount !== null) {
+        where.amount[Op.lte] = parsedMaxAmount
       }
-    }
+}
 
     const { count, rows } = await Transaction.findAndCountAll({
       where,
