@@ -136,19 +136,68 @@ async function createTransactionForUser(req, res) {
 
 async function listTransactions(req, res) {
   try {
-    const { showAll } = req.query
+    const {
+      showAll,
+      cpf,
+      product,
+      status,
+      startDate,
+      endDate,
+      minAmount,
+      maxAmount,
+    } = req.query
 
     const page = Number(req.query.page) || 1
     const limit = 30
     const offset = (page - 1) * limit
 
-    const where = showAll === 'true'
-      ? {}
-      : {
-          userId: {
-            [Op.ne]: null,
-          },
-        }
+    const where = {}
+
+    if (showAll !== 'true') {
+      where.userId = {
+        [Op.ne]: null,
+      }
+    }
+
+    if (cpf) {
+      where.cpf = {
+        [Op.like]: `%${cpf}%`,
+      }
+    }
+
+    if (product) {
+      where.description = {
+        [Op.like]: `%${product}%`,
+      }
+    }
+
+    if (status && status !== 'all') {
+      where.status = status
+    }
+
+    if (startDate || endDate) {
+      where.transactionDate = {}
+
+      if (startDate) {
+        where.transactionDate[Op.gte] = startDate
+      }
+
+      if (endDate) {
+        where.transactionDate[Op.lte] = endDate
+      }
+    }
+
+    if (minAmount || maxAmount) {
+      where.amount = {}
+
+      if (minAmount) {
+        where.amount[Op.gte] = Number(minAmount)
+      }
+
+      if (maxAmount) {
+        where.amount[Op.lte] = Number(maxAmount)
+      }
+    }
 
     const { count, rows } = await Transaction.findAndCountAll({
       where,

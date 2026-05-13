@@ -35,6 +35,16 @@ function AdminDashboard() {
   const [usersPagination, setUsersPagination] = useState(null)
   const [transactionsPagination, setTransactionsPagination] = useState(null)
 
+  const [transactionFilters, setTransactionFilters] = useState({
+    cpf: '',
+    product: '',
+    status: 'all',
+    startDate: '',
+    endDate: '',
+    minAmount: '',
+    maxAmount: '',
+  })
+
   useEffect(() => {
     loadUsers(1)
   }, [])
@@ -74,18 +84,80 @@ function AdminDashboard() {
     }
   }
 
-  async function loadTransactions(page = transactionsPage) {
-    try {
-      const data = await apiRequest(
-        `/admin/transactions?showAll=${showAllTransactions}&page=${page}`,
-      )
+async function loadTransactions(page = transactionsPage, customFilters = transactionFilters) {
+  try {
+    const params = new URLSearchParams()
 
-      setTransactions(data.transactions)
-      setTransactionsPagination(data.pagination)
-    } catch (error) {
-      setMessage(error.message)
+    params.append('page', page)
+    params.append('showAll', showAllTransactions)
+
+    if (customFilters.cpf) {
+      params.append('cpf', customFilters.cpf)
     }
+
+    if (customFilters.product) {
+      params.append('product', customFilters.product)
+    }
+
+    if (customFilters.status !== 'all') {
+      params.append('status', customFilters.status)
+    }
+
+    if (customFilters.startDate) {
+      params.append('startDate', customFilters.startDate)
+    }
+
+    if (customFilters.endDate) {
+      params.append('endDate', customFilters.endDate)
+    }
+
+    if (customFilters.minAmount) {
+      params.append('minAmount', customFilters.minAmount)
+    }
+
+    if (customFilters.maxAmount) {
+      params.append('maxAmount', customFilters.maxAmount)
+    }
+
+    const data = await apiRequest(`/admin/transactions?${params.toString()}`)
+
+    setTransactions(data.transactions)
+    setTransactionsPagination(data.pagination)
+  } catch (error) {
+    setMessage(error.message)
   }
+}
+
+function handleTransactionFilterChange(event) {
+  const { name, value } = event.target
+
+  setTransactionFilters({
+    ...transactionFilters,
+    [name]: value,
+  })
+}
+
+function handleApplyTransactionFilters(event) {
+  event.preventDefault()
+  setTransactionsPage(1)
+  loadTransactions(1)
+}
+
+function handleClearTransactionFilters() {
+  const clearedFilters = {
+    cpf: '',
+    product: '',
+    status: 'all',
+    startDate: '',
+    endDate: '',
+    minAmount: '',
+    maxAmount: '',
+  }
+
+  setTransactionFilters(clearedFilters)
+  setTransactionsPage(1)
+  loadTransactions(1, clearedFilters)
+}
 
   async function handleImportExcel(event) {
     const file = event.target.files[0]
@@ -391,18 +463,18 @@ function AdminDashboard() {
               <div>
                 <h2>Transações</h2>
                 {transactionsPagination?.total || 0} transações
-              </div>
+              </div>              
 
               <div className="transaction-tools">
                 <label className="check-option">
-                <input
-                  type="checkbox"
-                  checked={showAllTransactions}
-                  onChange={(event) => {
-                    setTransactionsPage(1)
-                    setShowAllTransactions(event.target.checked)
-                  }}
-                />
+                  <input
+                    type="checkbox"
+                    checked={showAllTransactions}
+                    onChange={(event) => {
+                      setTransactionsPage(1)
+                      setShowAllTransactions(event.target.checked)
+                    }}
+                  />
                   Ver todas as transações
                 </label>
 
@@ -423,6 +495,96 @@ function AdminDashboard() {
                 </button>
               </div>
             </div>
+
+                        <form className="admin-filters" onSubmit={handleApplyTransactionFilters}>
+              <label>
+                CPF
+                <input
+                  name="cpf"
+                  type="text"
+                  placeholder="Buscar CPF"
+                  value={transactionFilters.cpf}
+                  onChange={handleTransactionFilterChange}
+                />
+              </label>
+
+              <label>
+                Produto
+                <input
+                  name="product"
+                  type="text"
+                  placeholder="Produto X, Y, Z..."
+                  value={transactionFilters.product}
+                  onChange={handleTransactionFilterChange}
+                />
+              </label>
+
+              <label>
+                Status
+                <select
+                  name="status"
+                  value={transactionFilters.status}
+                  onChange={handleTransactionFilterChange}
+                >
+                  <option value="all">Todos</option>
+                  <option value="approved">Aprovado</option>
+                  <option value="pending">Em avaliação</option>
+                  <option value="rejected">Reprovado</option>
+                </select>
+              </label>
+
+              <label>
+                Data inicial
+                <input
+                  name="startDate"
+                  type="date"
+                  value={transactionFilters.startDate}
+                  onChange={handleTransactionFilterChange}
+                />
+              </label>
+
+              <label>
+                Data final
+                <input
+                  name="endDate"
+                  type="date"
+                  value={transactionFilters.endDate}
+                  onChange={handleTransactionFilterChange}
+                />
+              </label>
+
+              <label>
+                Valor mínimo
+                <input
+                  name="minAmount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={transactionFilters.minAmount}
+                  onChange={handleTransactionFilterChange}
+                />
+              </label>
+
+              <label>
+                Valor máximo
+                <input
+                  name="maxAmount"
+                  type="number"
+                  step="0.01"
+                  placeholder="10000.00"
+                  value={transactionFilters.maxAmount}
+                  onChange={handleTransactionFilterChange}
+                />
+              </label>
+
+              <button type="submit" className="filter-primary">
+                Filtrar
+              </button>
+
+              <button type="button" onClick={handleClearTransactionFilters}>
+                Limpar
+              </button>
+            </form>
 
             <div className="table-wrapper">
               <table>
