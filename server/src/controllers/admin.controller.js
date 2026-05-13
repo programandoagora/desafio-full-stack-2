@@ -416,6 +416,31 @@ function getRowValue(row, possibleNames) {
   return foundKey ? row[foundKey] : null
 }
 
+async function deleteTransaction(req, res) {
+  try {
+    const { id } = req.params
+
+    const transaction = await Transaction.findByPk(id)
+
+    if (!transaction) {
+      return res.status(404).json({
+        message: 'Transaction not found.',
+      })
+    }
+
+    await transaction.destroy()
+
+    return res.json({
+      message: 'Transaction deleted successfully.',
+    })
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error.',
+      error: error.message,
+    })
+  }
+}
+
 async function importTransactions(req, res) {
   try {
     if (!req.file) {
@@ -531,6 +556,9 @@ async function importTransactions(req, res) {
   }
 }
 
+
+
+
 module.exports = {
   listUsers,
   updateUserRole,
@@ -538,4 +566,5 @@ module.exports = {
   listTransactions,
   updateUserPassword,
   importTransactions,
+  deleteTransaction,
 }

@@ -45,6 +45,9 @@ function AdminDashboard() {
     maxAmount: '',
   })
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedTransaction, setSelectedTransaction] = useState(null)
+
   useEffect(() => {
     loadUsers(1)
   }, [])
@@ -55,14 +58,17 @@ function AdminDashboard() {
   }, [showAllTransactions])
 
   async function apiRequest(url, options = {}) {
-    const response = await fetch(`${API_URL}${url}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        ...options.headers,
+    const response = await fetch(
+      `${API_URL}${url}`,
+      {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          ...(options.headers || {}),
+        },
       },
-    })
+    )
 
     const data = await response.json()
 
@@ -225,17 +231,50 @@ function handleClearTransactionFilters() {
     }
   }
 
-  function openTransactionModal(user) {
-    setSelectedUser(user)
-    setMessage('')
-    setTransactionForm({
-      description: '',
-      transactionDate: '',
-      pointsValue: '',
-      amount: '',
-      status: 'pending',
-    })
-    setIsTransactionModalOpen(true)
+    function openTransactionModal(user) {
+      setSelectedUser(user)
+      setMessage('')
+      setTransactionForm({
+        description: '',
+        transactionDate: '',
+        pointsValue: '',
+        amount: '',
+        status: 'pending',
+      })
+      setIsTransactionModalOpen(true)
+    }
+
+    function handleOpenDeleteModal(transaction) {
+      setSelectedTransaction(transaction)
+      setDeleteModalOpen(true)
+    }
+
+    function handleCloseDeleteModal() {
+      setDeleteModalOpen(false)
+      setSelectedTransaction(null)
+    }
+
+    async function handleDeleteTransaction() {
+    if (!selectedTransaction) {
+      return
+    }
+
+    try {
+      await apiRequest(
+        `/admin/transactions/${selectedTransaction.id}`,
+        {
+          method: 'DELETE',
+        },
+      )
+
+      setMessage('Transação excluída com sucesso.')
+
+      handleCloseDeleteModal()
+
+      loadTransactions(transactionsPage)
+    } catch (error) {
+      setMessage(error.message)
+    }
   }
 
   function formatCurrencyBR(value) {
@@ -597,6 +636,7 @@ function handleClearTransactionFilters() {
                     <th>Pontos</th>
                     <th>Valor</th>
                     <th>Status</th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
 
@@ -618,12 +658,21 @@ function handleClearTransactionFilters() {
                               : 'Em avaliação'}
                         </span>
                       </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action danger"
+                          onClick={() => handleOpenDeleteModal(transaction)}
+                        >
+                          Excluir
+                        </button>
+                      </td>
                     </tr>
                   ))}
 
                   {transactions.length === 0 && (
                     <tr>
-                      <td colSpan="7">Nenhuma transação cadastrada.</td>
+                      <td colSpan="8">Nenhuma transação cadastrada.</td>
                     </tr>
                   )}
                 </tbody>
@@ -662,6 +711,48 @@ function handleClearTransactionFilters() {
           </div>
         )}
       </section>
+
+      {deleteModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-card delete-modal">
+            <div className="modal-header">
+              <h3 class="h3-del">Excluir transação</h3>
+            </div>
+
+            <div className="delete-content">
+              <p>
+                Deseja realmente excluir esta transação?
+              </p>
+
+              <strong>
+                {selectedTransaction?.description}
+              </strong>
+
+              <span>
+                Esta ação não poderá ser desfeita.
+              </span>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={handleCloseDeleteModal}
+              >
+                Não
+              </button>
+
+              <button
+                type="button"
+                className="danger"
+                onClick={handleDeleteTransaction}
+              >
+                Sim, excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isTransactionModalOpen && (
         <div className="modal-overlay">
