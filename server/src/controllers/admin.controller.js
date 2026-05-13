@@ -3,6 +3,7 @@ const Transaction = require('../models/Transaction')
 const bcrypt = require('bcryptjs')
 const xlsx = require('xlsx')
 const { Op } = require('sequelize')
+const sequelize = require('../config/database')
 
 async function listUsers(req, res) {
   try {
@@ -160,9 +161,31 @@ async function listTransactions(req, res) {
     }
 
     if (cpf) {
-      where.cpf = {
-        [Op.like]: `%${cpf}%`,
-      }
+      const cleanCpf = String(cpf).replace(/\D/g, '')
+
+      where[Op.and] = [
+        sequelize.where(
+          sequelize.fn(
+            'REPLACE',
+            sequelize.fn(
+              'REPLACE',
+              sequelize.fn(
+                'REPLACE',
+                sequelize.col('cpf'),
+                '.',
+                '',
+              ),
+              '-',
+              '',
+            ),
+            ' ',
+            '',
+          ),
+          {
+            [Op.like]: `%${cleanCpf}%`,
+          },
+        ),
+      ]
     }
 
     if (product) {
