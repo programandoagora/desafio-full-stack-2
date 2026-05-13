@@ -1,6 +1,9 @@
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { Op } = require('sequelize')
+
 const User = require('../models/User')
+const Transaction = require('../models/Transaction')
 
 async function register(req, res) {
   try {
@@ -12,8 +15,15 @@ async function register(req, res) {
       })
     }
 
+    const cleanCpf = String(cpf).replace(/\D/g, '')
+
     const cpfAlreadyExists = await User.findOne({
-      where: { cpf },
+      where: {
+        [Op.or]: [
+          { cpf },
+          { cpf: cleanCpf },
+        ],
+      },
     })
 
     if (cpfAlreadyExists) {
@@ -36,11 +46,26 @@ async function register(req, res) {
 
     const user = await User.create({
       name,
-      cpf,
+      cpf: cleanCpf,
       email,
       passwordHash,
       role: 'user',
     })
+
+    await Transaction.update(
+      {
+        userId: user.id,
+      },
+      {
+        where: {
+          userId: null,
+          [Op.or]: [
+            { cpf },
+            { cpf: cleanCpf },
+          ],
+        },
+      },
+    )
 
     return res.status(201).json({
       message: 'User created successfully.',
@@ -97,7 +122,7 @@ async function login(req, res) {
       process.env.JWT_SECRET,
       {
         expiresIn: process.env.JWT_EXPIRES_IN || '1d',
-      }
+      },
     )
 
     return res.json({
